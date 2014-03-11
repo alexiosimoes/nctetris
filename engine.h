@@ -1,5 +1,5 @@
-#ifndef _PTETRIS
-#define	_PTETRIS
+#ifndef _NCTETRIS
+#define	_NCTETRIS
 typedef struct board *PtBoard;
 typedef struct piece *PtPiece;
 PtBoard createBoard (unsigned width,unsigned height, unsigned initx,unsigned inity,unsigned hidden);	//create a empty board
