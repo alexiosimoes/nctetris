@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -23,13 +24,12 @@ struct piece
 static int error=0;
 static char * errorMsg;
  
-static void insertPiece (PtBoard board, PtPiece piece,int x,int y);
-static void deletePiece(PtBoard board, PtPiece piece,int x, int y);
+static void insert (PtBoard board, PtPiece piece,int x,int y);
+static void delete(PtBoard board, PtPiece piece,int x, int y);
 static int collition(PtBoard board,PtPiece piece,int x,int y);	//test for colitions
 static void startPoint(PtBoard board, PtPiece piece ,int *x,int *y);	//returns by pointer the position 0,0 of the piece on the board
-static PtPiece rotate(PtPiece piece);
 
-PtBoard createBoard (unsigned width,unsigned height, unsigned initx,unsigned inity,unsigned hidden)	//create a empty board
+PtBoard boardCreate (unsigned width,unsigned height, unsigned initx,unsigned inity,unsigned hidden)	//create a empty board
 {
 	assert (width>0);		//verifications
 	assert (height>0);		
@@ -75,10 +75,10 @@ PtBoard createBoard (unsigned width,unsigned height, unsigned initx,unsigned ini
 	board->hidden=hidden;			//
 	return board;	
 }
-PtPiece createPiece (unsigned width,unsigned height, unsigned rotx, unsigned roty, unsigned rotate)	//create a empty piece
+PtPiece pieceCreate (unsigned width,unsigned height, unsigned rotx, unsigned roty, unsigned rotate)	//create a empty piece
 {
-	assert (width>0);		//verifications
-	assert (width>0);		
+    assert (width>0);		//verifications
+	assert (height>0);		
 	assert (rotx<width);		
 	assert (roty<height);		//
 	
@@ -118,7 +118,7 @@ PtPiece createPiece (unsigned width,unsigned height, unsigned rotx, unsigned rot
 	return piece;			//
 
 }
-void destroyBoard (PtBoard *board)	//free the space alocated by board
+void boardDestroy (PtBoard *board)	//free the space alocated by board
 {
 	assert (board!=NULL);		//verifications	
 	assert (*board!=NULL);
@@ -129,7 +129,7 @@ void destroyBoard (PtBoard *board)	//free the space alocated by board
 	free(*board);			//free of struct
 	*board=NULL;
 }
-void destroyPiece (PtPiece *piece)	//free the space alocated by piece
+void pieceDestroy (PtPiece *piece)	//free the space alocated by piece
 {
 	assert (piece!=NULL);
 	assert (*piece!=NULL);
@@ -140,19 +140,26 @@ void destroyPiece (PtPiece *piece)	//free the space alocated by piece
 	free(*piece);				//free of struct
 	*piece=NULL;
 }
+PtBoard boardClean(PtBoard *board)
+{
+	PtBoard new= boardCreate((*board)->size[0],(*board)->size[1],(*board)->init[0],(*board)->init[1],(*board)->hidden);
+    boardDestroy(board);
+    return new;
+    
+}
 int moveDown (PtBoard board,PtPiece piece)	//move piece down on the board
 {
 	assert (board!=NULL);
 	assert (piece!=NULL);
 	int x,y;
 	startPoint(board,piece,&x,&y);		//get the 0,0 position
-	deletePiece(board,piece,x,y);		//delete piece
+	delete(board,piece,x,y);		//delete piece
 	if(collition(board,piece,x,y-1))		//collition check
 	{
-		insertPiece(board,piece,x,y);		
+		insert(board,piece,x,y);		
 		return 0;
 	}
-	insertPiece(board,piece,x,y-1);		//insert piece in the new position		
+	insert(board,piece,x,y-1);		//insert piece in the new position		
 	board->actual[1]--;
 	return 1;	
 			
@@ -163,13 +170,13 @@ void moveRight (PtBoard board, PtPiece piece)	//move piece to right
 	assert (piece!=NULL);
 	int x,y;
 	startPoint(board,piece,&x,&y);		//get the 0,0 position
-	deletePiece(board,piece,x,y);		//delete piece
+	delete(board,piece,x,y);		//delete piece
 	if(collition(board,piece,x+1,y))		//collition check
 	{
-		insertPiece(board,piece,x,y);		
+		insert(board,piece,x,y);		
 		return;
 	}
-	insertPiece(board,piece,x+1,y);		//insert piece in the new position		
+	insert(board,piece,x+1,y);		//insert piece in the new position		
 	board->actual[0]++;
 
 }
@@ -179,13 +186,13 @@ void moveLeft (PtBoard board, PtPiece piece)	//move piece to left
 	assert (piece!=NULL);
 	int x,y;
 	startPoint(board,piece,&x,&y);		//get the 0,0 position
-	deletePiece(board,piece,x,y);		//delete piece
+	delete(board,piece,x,y);		//delete piece
 	if(collition(board,piece,x-1,y))		//collition check
 	{
-		insertPiece(board,piece,x,y);		
+		insert(board,piece,x,y);		
 		return ;
 	}
-	insertPiece(board,piece,x-1,y);		//insert piece in the new position		
+	insert(board,piece,x-1,y);		//insert piece in the new position		
 	board->actual[0]--;
 
 }
@@ -198,16 +205,16 @@ PtPiece pieceRotate (PtBoard board, PtPiece piece)	//rotate piece
 	PtPiece	new;
 
 	startPoint(board,piece,&x,&y);		//get the 0,0 position
-	deletePiece(board,piece,x,y);		//delete piece
+	delete(board,piece,x,y);		//delete piece
 	
 	
 	switch(piece->rotate)
 	{
-		case 0 :	new = createPiece(piece->size[1],piece->size[0],piece->rotpoint[1],piece->rotpoint[0],piece->rotate);
+		case 0 :	new = pieceCreate(piece->size[1],piece->size[0],piece->rotpoint[1],piece->rotpoint[0],piece->rotate);
 				break;
-		case 1 :	new = createPiece(piece->size[1],piece->size[0],piece->size[1]-piece->rotpoint[1]-1,piece->size[0]-piece->rotpoint[0]-1,piece->rotate);
+		case 1 :	new = pieceCreate(piece->size[1],piece->size[0],piece->size[1]-piece->rotpoint[1]-1,piece->size[0]-piece->rotpoint[0]-1,piece->rotate);
 				break;
-		case 2 :	new = createPiece(piece->size[1],piece->size[0],piece->size[1]-piece->rotpoint[1]-1,piece->rotpoint[0],piece->rotate);
+		case 2 :	new = pieceCreate(piece->size[1],piece->size[0],piece->size[1]-piece->rotpoint[1]-1,piece->rotpoint[0],piece->rotate);
 				break;	
 	}
 
@@ -219,11 +226,11 @@ PtPiece pieceRotate (PtBoard board, PtPiece piece)	//rotate piece
 	startPoint(board,new,&nx,&ny);		//get the 0,0 position
 	if(collition(board,new,nx,ny))		//collition check
 	{
-		insertPiece(board,piece,x,y);		
+		insert(board,piece,x,y);		
 		return piece;
 	}
 
-	insertPiece(board,new,nx,ny);		//insert piece in the new position					
+	insert(board,new,nx,ny);		//insert piece in the new position					
 	return new;
 	
 	
@@ -259,43 +266,43 @@ int checkLines (PtBoard board, PtPiece piece)	//check and delete complete lines
 	
 	
 }
-void setPiece(PtPiece piece,unsigned x, unsigned y,int value)	//set a point on a specified piece
+void pieceSet(PtPiece piece,unsigned x, unsigned y,int value)	//set a point on a specified piece
 {
 	assert(piece!=NULL);
 	assert(x<piece->size[0]&& y<piece->size[1]);
 	piece->matrix[x][y]=value;
 }
-void setBoard(PtBoard board,unsigned x, unsigned y,int value)	//set a point in the board ///for future use
+void boardSet(PtBoard board,unsigned x, unsigned y,int value)	//set a point in the board ///for future use
 {
 	assert(board!=NULL);
 	assert(x<board->size[0]&& y<board->size[1]);
 	board->matrix[x][y]=value;
 }
 
-int getPiece(PtPiece piece,unsigned x, unsigned y)	//get a point in a specified piece
+int pieceGet(PtPiece piece,unsigned x, unsigned y)	//get a point in a specified piece
 {
 	assert(piece!=NULL);
 	assert(x<piece->size[0]&& y<piece->size[1]);
 	return piece->matrix[x][y];
 }
-int getBoard(PtBoard board,unsigned x, unsigned y)	//get a point in the board
+int boardGet(PtBoard board,unsigned x, unsigned y)	//get a point in the board
 {
 	assert(board!=NULL);
 	assert(x<board->size[0]&& y<board->size[1]);
 	return board->matrix[x][y];
 }
 
-PtPiece copyPiece(PtPiece piece)	//returns a copy of a specified piece
+PtPiece pieceCopy(PtPiece piece)	//returns a copy of a specified piece
 {
 	int i,j;
 	assert (piece!=NULL);
-	PtPiece new = createPiece(piece->size[0],piece->size[1],piece->rotpoint[0],piece->rotpoint[1],piece->rotate);
+	PtPiece new = pieceCreate(piece->size[0],piece->size[1],piece->rotpoint[0],piece->rotpoint[1],piece->rotate);
 	for(i=0;i<piece->size[0];i++)
 		for(j=0;j<piece->size[1];j++)
 			new->matrix[i][j]=piece->matrix[i][j];
 	return new;
 }
-int initPiece(PtBoard board, PtPiece piece) //initializate the piece on top of the board
+int pieceInit(PtBoard board, PtPiece piece) //initializate the piece on top of the board
 {
 	assert(board!=NULL);
 	assert(piece!=NULL);
@@ -307,7 +314,7 @@ int initPiece(PtBoard board, PtPiece piece) //initializate the piece on top of t
 	int x,y;
 	startPoint(board,piece,&x,&y);
 
-	insertPiece(board,piece,x,y);
+	insert(board,piece,x,y);
 	return 1;	
 }
 int pieceWidth(PtPiece piece)
@@ -335,7 +342,7 @@ int boardHidden(PtBoard board)
 	assert(board!=NULL);
 	return board->hidden;
 }
-static void insertPiece (PtBoard board, PtPiece piece,int x, int y)	//insert piece on the boad
+static void insert (PtBoard board, PtPiece piece,int x, int y)	//insert piece on the boad
 {
 	int i,j,k,l;
 	for (i=0,k=x;i<piece->size[0];i++,k++)
@@ -344,7 +351,7 @@ static void insertPiece (PtBoard board, PtPiece piece,int x, int y)	//insert pie
 				board->matrix[k][l]=piece->matrix[i][j];
 
 }
-static void deletePiece(PtBoard board, PtPiece piece,int x, int y)	//delete piece from the board
+static void delete(PtBoard board, PtPiece piece,int x, int y)	//delete piece from the board
 { 
 
 	int i,j,k,l;
@@ -355,7 +362,7 @@ static void deletePiece(PtBoard board, PtPiece piece,int x, int y)	//delete piec
 }
 static int collition(PtBoard board,PtPiece piece,int x,int y)	//test for colitions
 {
-	if(x<0 || y<0 || x+piece->size[0]>board->size[0] || y+piece->size[1]>board->size[1])	//test for collition with the borders
+	if(x<0 || y<0 || x+piece->size[0]>board->size[0] || y+piece->size[1]-1>board->size[1])	//test for collition with the borders///it works i dont know why
 		return 1; 
 	int i,j,k,l;
 	for (i=0,k=x;i<piece->size[0];i++,k++)							//test for overlaping collitions
