@@ -197,7 +197,9 @@ int tetrisMove(PtBoard board,PtPiece *piece,PtPiece next,int speed)
                         moveRight(board,*piece);
 				    	break;
 			    case 'p':
-                    	while(getch()!='p');
+                        nodelay(stdscr,0);
+                    	getch();
+                        nodelay(stdscr,1);
 					    break;
             }
             boardDraw(board,next);
