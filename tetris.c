@@ -44,7 +44,7 @@ int main()
             case 4 :    
                         score+=1020;
         }
-       if((score/level)>=1000)
+       if((score/level)>=5000)
         {
             if(++level>10)
                 break;
